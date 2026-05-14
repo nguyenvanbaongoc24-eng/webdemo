@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đăng Ký Remote Signing – CA2 Nacencomm</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #003087;
+    --navy-dark: #001f5c;
+    --navy-light: #e8eef8;
+    --red: #d62b2b;
+    --red-light: #fdeaea;
+    --gold: #f5a623;
+    --green: #1a7d4a;
+    --green-light: #e6f4ec;
+    --gray: #f4f5f7;
+    --gray2: #e8eaed;
+    --text: #1a1c23;
+    --text2: #4a4f5e;
+    --text3: #8891a4;
+    --border: #d0d5e0;
+    --white: #ffffff;
+    --shadow: 0 2px 12px rgba(0,48,135,0.10);
+    --shadow-lg: 0 8px 32px rgba(0,48,135,0.14);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: #f0f2f7;
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: var(--navy-dark);
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header-logo {
+    display: flex; align-items: center; gap: 12px;
+    text-decoration: none;
+  }
+  .logo-badge {
+    background: var(--red);
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    letter-spacing: -1px;
+  }
+  .logo-text { color: white; font-size: 15px; font-weight: 600; line-height: 1.3; }
+  .logo-sub { color: rgba(255,255,255,0.55); font-size: 11px; font-weight: 400; }
+  .header-nav { display: flex; gap: 24px; align-items: center; }
+  .header-nav a {
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color .2s;
+  }
+  .header-nav a:hover { color: white; }
+  .header-cta {
+    background: var(--red);
+    color: white !important;
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+  }
+
+  /* ===== HERO BANNER ===== */
+  .hero {
+    background: linear-gradient(135deg, var(--navy-dark) 0%, #0a52c4 100%);
+    padding: 36px 40px 28px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -60px; right: -60px;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .hero::after {
+    content: '';
+    position: absolute; bottom: -40px; left: 30%;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+  .hero-breadcrumb { font-size: 12px; color: rgba(255,255,255,0.55); margin-bottom: 10px; }
+  .hero-breadcrumb span { color: rgba(255,255,255,0.8); }
+  .hero h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .hero p { font-size: 14px; color: rgba(255,255,255,0.75); max-width: 560px; }
+  .hero-badges { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .hero-badge {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.9);
+    font-size: 12px; font-weight: 500;
+    padding: 5px 12px; border-radius: 20px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .hero-badge::before { content: '✓'; color: #4ade80; font-weight: 700; }
+
+  /* ===== MAIN LAYOUT ===== */
+  .main { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  /* ===== STEP INDICATOR ===== */
+  .steps-wrap {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  .steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .step-item {
+    display: flex; align-items: center; flex: 1; min-width: 0;
+  }
+  .step-dot-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+  .step-dot {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--text3);
+    transition: all .3s;
+  }
+  .step-dot.active { border-color: var(--navy); background: var(--navy); color: white; }
+  .step-dot.done { border-color: var(--green); background: var(--green); color: white; }
+  .step-dot.done::after { content: '✓'; font-size: 14px; }
+  .step-label { font-size: 11px; color: var(--text3); text-align: center; white-space: nowrap; font-weight: 500; }
+  .step-label.active { color: var(--navy); }
+  .step-label.done { color: var(--green); }
+  .step-line { flex: 1; height: 2px; background: var(--border); margin: 0 6px; margin-bottom: 18px; transition: background .3s; }
+  .step-line.done { background: var(--green); }
+
+  /* ===== FORM CARD ===== */
+  .form-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .form-card-head {
+    background: var(--navy);
+    padding: 18px 28px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .form-card-icon {
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: white; flex-shrink: 0;
+  }
+  .form-card-title { color: white; font-size: 16px; font-weight: 600; }
+  .form-card-sub { color: rgba(255,255,255,0.65); font-size: 12px; margin-top: 2px; }
+  .form-body { padding: 28px; }
+
+  /* ===== FORM ELEMENTS ===== */
+  .form-section { margin-bottom: 28px; }
+  .section-title {
+    font-size: 13px; font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--navy-light);
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title span {
+    background: var(--navy);
+    color: white;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+  }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid.full { grid-template-columns: 1fr; }
+  .form-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 600px) {
+    .form-grid, .form-grid.three { grid-template-columns: 1fr; }
+    .hero { padding: 24px 20px; }
+    .header { padding: 0 16px; }
+    .header-nav { display: none; }
+  }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field.span2 { grid-column: span 2; }
+  @media (max-width: 600px) { .field.span2 { grid-column: span 1; } }
+  label {
+    font-size: 13px; font-weight: 600; color: var(--text2);
+    display: flex; align-items: center; gap: 4px;
+  }
+  label .req { color: var(--red); font-size: 14px; }
+  input[type=text], input[type=email], input[type=tel], input[type=date], select, textarea {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 13px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background: white;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(0,48,135,0.08);
+  }
+  input.error, select.error { border-color: var(--red); background: var(--red-light); }
+  .field-error { font-size: 12px; color: var(--red); display: none; margin-top: 2px; }
+  .field-error.show { display: block; }
+  select { cursor: pointer; }
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* ===== RADIO / CHECKBOX GROUPS ===== */
+  .radio-group, .check-group {
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .radio-card, .check-card {
+    display: flex; align-items: center; gap: 8px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all .2s;
+    font-size: 13px; font-weight: 500; color: var(--text2);
+    user-select: none;
+  }
+  .radio-card:hover, .check-card:hover { border-color: var(--navy); color: var(--navy); background: var(--navy-light); }
+  .radio-card.selected, .check-card.selected {
+    border-color: var(--navy);
+    background: var(--navy-light);
+    color: var(--navy);
+  }
+  .radio-card input, .check-card input { accent-color: var(--navy); }
+
+  /* ===== GÓI ĐĂNG KÝ ===== */
+  .packages { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .pkg-card {
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .25s;
+    position: relative;
+  }
+  .pkg-card:hover { border-color: var(--navy); box-shadow: var(--shadow); }
+  .pkg-card.selected { border-color: var(--navy); background: var(--navy-light); }
+  .pkg-card.popular::before {
+    content: 'Phổ biến';
+    position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+    background: var(--gold);
+    color: white; font-size: 11px; font-weight: 700;
+    padding: 2px 10px; border-radius: 20px;
+    white-space: nowrap;
+  }
+  .pkg-name { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .pkg-price { font-size: 13px; color: var(--text3); }
+  .pkg-input { position: absolute; opacity: 0; pointer-events: none; }
+  .pkg-check {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    margin: 8px auto 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .pkg-card.selected .pkg-check { background: var(--navy); border-color: var(--navy); }
+  .pkg-card.selected .pkg-check::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
+
+  /* ===== BUTTONS ===== */
+  .form-footer {
+    padding: 20px 28px;
+    border-top: 1px solid var(--gray2);
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--gray);
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 24px;
+    border-radius: var(--radius-sm);
+    font-family: inherit; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; transition: all .2s;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--navy); color: white;
+    box-shadow: 0 2px 8px rgba(0,48,135,0.25);
+  }
+  .btn-primary:hover { background: var(--navy-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,48,135,0.3); }
+  .btn-secondary { background: white; color: var(--text2); border: 1.5px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--navy); color: var(--navy); }
+  .btn-disabled { background: var(--border); color: var(--text3); cursor: not-allowed; }
+  .progress-text { font-size: 12px; color: var(--text3); }
+
+  /* ===== STEP PANELS ===== */
+  .step-panel { display: none; }
+  .step-panel.active { display: block; }
+
+  /* ===== NOTICE BOX ===== */
+  .notice {
+    background: #fffbea;
+    border: 1px solid #f5e06a;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #7a6200;
+    margin-bottom: 20px;
+    display: flex; gap: 10px;
+  }
+  .notice-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ===== SUCCESS ===== */
+  .success-wrap { text-align: center; padding: 40px 20px; }
+  .success-icon {
+    width: 72px; height: 72px;
+    background: var(--green-light);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 34px; margin: 0 auto 20px;
+  }
+  .success-wrap h2 { font-size: 22px; font-weight: 700; color: var(--green); margin-bottom: 8px; }
+  .success-wrap p { font-size: 14px; color: var(--text2); max-width: 480px; margin: 0 auto 20px; line-height: 1.6; }
+  .email-highlight {
+    display: inline-block;
+    background: var(--navy-light);
+    color: var(--navy);
+    padding: 4px 12px; border-radius: 20px;
+    font-weight: 600; font-size: 14px;
+    margin: 4px 0;
+  }
+  .pdf-list { list-style: none; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+  .pdf-item {
+    display: flex; align-items: center; gap: 8px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 18px;
+    font-size: 13px; font-weight: 600; color: var(--navy);
+    cursor: pointer; background: white;
+    transition: all .2s;
+    text-decoration: none;
+  }
+  .pdf-item:hover { border-color: var(--navy); box-shadow: var(--shadow); background: var(--navy-light); }
+  .pdf-icon { font-size: 22px; }
+
+  /* ===== INFO TABLE ===== */
+  .info-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  .info-table td { padding: 6px 8px; }
+  .info-table td:first-child { color: var(--text3); font-weight: 500; width: 42%; }
+  .info-table td:last-child { color: var(--text); font-weight: 600; }
+  .info-table tr:not(:last-child) td { border-bottom: 1px solid var(--gray2); }
+  .review-section {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .review-head {
+    background: var(--navy-light);
+    padding: 9px 14px;
+    font-size: 12px; font-weight: 700;
+    color: var(--navy); text-transform: uppercase; letter-spacing: .4px;
+  }
+  .review-body { padding: 8px 14px; }
+
+  /* ===== CONDITIONAL SECTIONS ===== */
+  .cond-section { display: none; }
+  .cond-section.show { display: block; }
+
+  /* ===== FOOTER ===== */
+  .site-footer {
+    background: var(--navy-dark);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 18px;
+    font-size: 12px;
+    margin-top: 40px;
+  }
+  .site-footer a { color: rgba(255,255,255,0.7); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <a class="header-logo" href="#">
+    <div class="logo-badge">CA2</div>
+    <div>
+      <div class="logo-text">NACENCOMM</div>
+      <div class="logo-sub">Tổng Công ty Truyền thông</div>
+    </div>
+  </a>
+  <nav class="header-nav">
+    <a href="#">Sản phẩm</a>
+    <a href="#">Hỗ trợ</a>
+    <a href="#">Liên hệ</a>
+    <a href="#" class="header-cta">Đăng ký ngay</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-breadcrumb">Trang chủ › Sản phẩm › <span>Remote Signing</span></div>
+  <h1>📝 Đăng Ký Online – Dịch Vụ Remote Signing</h1>
+  <p>Hoàn thành đăng ký 100% trực tuyến. Nhận chứng thư số & kích hoạt ngay sau khi được thẩm định.</p>
+  <div class="hero-badges">
+    <span class="hero-badge">Hợp đồng điện tử</span>
+    <span class="hero-badge">Sinh PDF tự động</span>
+    <span class="hero-badge">Thẩm định nhanh 1–2 ngày</span>
+    <span class="hero-badge">Hỗ trợ 24/7</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- STEP INDICATOR -->
+  <div class="steps-wrap">
+    <div class="steps" id="stepBar">
+      <div class="step-item">
+        <div class="step-dot-wrap">
+          <div class="step-dot active" id="sdot1">1</div>
+          <div class="step-label active" id="slbl1">Đối tượng</div>
+        </div>
+        <div class="step-line" id="sline1"></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot-wrap">
+          <div class="step-dot" id="sdot2">2</div>
+          <div class="step-label" id="slbl2">Thông tin</div>
+        </div>
+        <div class="step-line" id="sline2"></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot-wrap">
+          <div class="step-dot" id="sdot3">3</div>
+          <div class="step-label" id="slbl3">Dịch vụ</div>
+        </div>
+        <div class="step-line" id="sline3"></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot-wrap">
+          <div class="step-dot" id="sdot4">4</div>
+          <div class="step-label" id="slbl4">Xác nhận</div>
+        </div>
+        <div class="step-line" id="sline4"></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot-wrap">
+          <div class="step-dot" id="sdot5">5</div>
+          <div class="step-label" id="slbl5">Hoàn tất</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM CARD -->
+  <div class="form-card">
+
+    <!-- ========== STEP 1: ĐỐI TƯỢNG ========== -->
+    <div class="step-panel active" id="panel1">
+      <div class="form-card-head">
+        <div class="form-card-icon">👤</div>
+        <div>
+          <div class="form-card-title">Bước 1 / 4 — Chọn đối tượng đăng ký</div>
+          <div class="form-card-sub">Vui lòng chọn đúng loại đối tượng để hệ thống hiển thị form phù hợp</div>
+        </div>
+      </div>
+      <div class="form-body">
+        <div class="notice">
+          <span class="notice-icon">ℹ️</span>
+          <div>Đây là đăng ký dịch vụ <strong>Remote Signing</strong> — Chữ ký số từ xa không cần USB Token. Dịch vụ áp dụng cho tổ chức, doanh nghiệp và cá nhân tại Việt Nam.</div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-title"><span>1</span>Đối tượng đăng ký</div>
+          <div class="radio-group" id="dtGroup">
+            <label class="radio-card selected" id="lbl_tcdn">
+              <input type="radio" name="doituong" value="tcdn" checked onchange="onDoiTuong(this)"> 🏢 Tổ chức / Doanh nghiệp
+            </label>
+            <label class="radio-card" id="lbl_ca_tcdn">
+              <input type="radio" name="doituong" value="ca_tcdn" onchange="onDoiTuong(this)"> 👨‍💼 Cá nhân thuộc tổ chức
+            </label>
+            <label class="radio-card" id="lbl_cn">
+              <input type="radio" name="doituong" value="cn" onchange="onDoiTuong(this)"> 👤 Cá nhân
+            </label>
+            <label class="radio-card" id="lbl_hkd">
+              <input type="radio" name="doituong" value="hkd" onchange="onDoiTuong(this)"> 🏪 Hộ kinh doanh
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-title"><span>5.1</span>Hình thức đăng ký</div>
+          <div class="radio-group" id="htGroup">
+            <label class="radio-card selected" id="lbl_capMoi">
+              <input type="radio" name="hinhthu" value="capMoi" checked onclick="setRC('htGroup',this.parentElement)"> 🆕 Cấp mới
+            </label>
+            <label class="radio-card" id="lbl_giaHan">
+              <input type="radio" name="hinhthu" value="giaHan" onclick="setRC('htGroup',this.parentElement)"> 🔄 Gia hạn
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="form-footer">
+        <span class="progress-text">Bước 1 / 4</span>
+        <button class="btn btn-primary" onclick="goStep(2)">Tiếp theo →</button>
+      </div>
+    </div>
+
+    <!-- ========== STEP 2: THÔNG TIN ========== -->
+    <div class="step-panel" id="panel2">
+      <div class="form-card-head">
+        <div class="form-card-icon">📋</div>
+        <div>
+          <div class="form-card-title">Bước 2 / 4 — Thông tin đăng ký</div>
+          <div class="form-card-sub">Điền đầy đủ thông tin để hệ thống tạo hồ sơ tự động</div>
+        </div>
+      </div>
+      <div class="form-body">
+
+        <!-- Phần 2: Tổ chức (ẩn nếu là cá nhân) -->
+        <div class="form-section cond-section show" id="sec_tcdn">
+          <div class="section-title"><span>2</span>Thông tin tổ chức / Doanh nghiệp</div>
+          <div class="form-grid full">
+            <div class="field">
+              <label>Tên tổ chức, doanh nghiệp <span class="req">*</span></label>
+              <input type="text" id="tenTCDN" placeholder="Ví dụ: Công ty TNHH ABC" oninput="clearErr(this)">
+              <div class="field-error" id="err_tenTCDN">Vui lòng nhập tên tổ chức</div>
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top:16px">
+            <div class="field">
+              <label>Địa chỉ <span class="req">*</span></label>
+              <input type="text" id="diaChi_tcdn" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" oninput="clearErr(this)">
+              <div class="field-error" id="err_diaChi_tcdn">Vui lòng nhập địa chỉ</div>
+            </div>
+            <div class="field">
+              <label>Mã số thuế / Mã ngân sách <span class="req">*</span></label>
+              <input type="text" id="maSoThue" placeholder="Ví dụ: 0123456789" oninput="clearErr(this)">
+              <div class="field-error" id="err_maSoThue">Vui lòng nhập mã số thuế</div>
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top:16px">
+            <div class="field">
+              <label>Người đại diện pháp luật <span class="req">*</span></label>
+              <input type="text" id="nddpl" placeholder="Họ và tên đầy đủ" oninput="clearErr(this)">
+              <div class="field-error" id="err_nddpl">Vui lòng nhập người đại diện</div>
+            </div>
+            <div class="field">
+              <label>Chức vụ</label>
+              <input type="text" id="chucVu_tcdn" placeholder="Ví dụ: Giám đốc, Tổng giám đốc">
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top:16px">
+            <div class="field">
+              <label>CCCD / CMND / Hộ chiếu <span class="req">*</span></label>
+              <input type="text" id="cccd_tcdn" placeholder="Số CCCD/CMND" oninput="clearErr(this)">
+              <div class="field-error" id="err_cccd_tcdn">Vui lòng nhập số CCCD</div>
+            </div>
+            <div class="field">
+              <label>Ngày cấp <span class="req">*</span></label>
+              <input type="date" id="ngayCap_tcdn" oninput="clearErr(this)">
+              <div class="field-error" id="err_ngayCap_tcdn">Vui lòng chọn ngày cấp</div>
+            </div>
+          </div>
+          <div class="form-grid full" style="margin-top:16px">
+            <div class="field">
+              <label>Email nhận chứng thư số <span class="req">*</span></label>
+              <input type="email" id="email_tcdn" placeholder="email@congty.com.vn" oninput="clearErr(this)">
+              <div class="field-error" id="err_email_tcdn">Vui lòng nhập email hợp lệ</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phần 3: Cá nhân -->
+        <div class="form-section">
+          <div class="section-title"><span>3</span>Thông tin cá nhân <span id="sec3_sub" style="font-size:11px;font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">(Người sở hữu chứng thư số)</span></div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Họ và tên <span class="req">*</span></label>
+              <input type="text" id="hoTen" placeholder="Họ và tên đầy đủ" oninput="clearErr(this)">
+              <div class="field-error" id="err_hoTen">Vui lòng nhập họ và tên</div>
+            </div>
+            <div class="field">
+              <label>Chức danh</label>
+              <input type="text" id="chucDanh" placeholder="Kế toán, Giám đốc, ...">
+            </div>
+          </div>
+          <div class="form-grid full" style="margin-top:16px">
+            <div class="field">
+              <label>Địa chỉ <span class="req">*</span></label>
+              <input type="text" id="diaChi_cn" placeholder="Địa chỉ cư trú" oninput="clearErr(this)">
+              <div class="field-error" id="err_diaChi_cn">Vui lòng nhập địa chỉ</div>
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top:16px">
+            <div class="field">
+              <label>CCCD / CMND / Hộ chiếu <span class="req">*</span></label>
+              <input type="text" id="cccd_cn" placeholder="Số CCCD/CMND" oninput="clearErr(this)">
+              <div class="field-error" id="err_cccd_cn">Vui lòng nhập số CCCD</div>
+            </div>
+            <div class="field">
+              <label>Ngày cấp <span class="req">*</span></label>
+              <input type="date" id="ngayCap_cn" oninput="clearErr(this)">
+              <div class="field-error" id="err_ngayCap_cn">Vui lòng chọn ngày cấp</div>
+            </div>
+          </div>
+          <div class="form-grid full" style="margin-top:16px">
+            <div class="field">
+              <label>Email nhận chứng thư số <span class="req">*</span></label>
+              <input type="email" id="email_cn" placeholder="email@gmail.com" oninput="clearErr(this)">
+              <div class="field-error" id="err_email_cn">Vui lòng nhập email hợp lệ</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phần 4: Liên hệ -->
+        <div class="form-section">
+          <div class="section-title"><span>4</span>Thông tin liên hệ / Nhận chứng thư số</div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Người liên hệ / Nhận CTS <span class="req">*</span></label>
+              <input type="text" id="nguoiLH" placeholder="Tên người nhận" oninput="clearErr(this)">
+              <div class="field-error" id="err_nguoiLH">Vui lòng nhập người liên hệ</div>
+            </div>
+            <div class="field">
+              <label>Số điện thoại <span class="req">*</span></label>
+              <input type="tel" id="sdt" placeholder="0xxx xxx xxx" oninput="clearErr(this)">
+              <div class="field-error" id="err_sdt">Vui lòng nhập số điện thoại hợp lệ</div>
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top:16px">
+            <div class="field">
+              <label>CCCD / CMND</label>
+              <input type="text" id="cccd_lh" placeholder="Số CCCD người nhận">
+            </div>
+            <div class="field">
+              <label>Ngày cấp</label>
+              <input type="date" id="ngayCap_lh">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="form-footer">
+        <button class="btn btn-secondary" onclick="goStep(1)">← Quay lại</button>
+        <span class="progress-text">Bước 2 / 4</span>
+        <button class="btn btn-primary" onclick="validateStep2()">Tiếp theo →</button>
+      </div>
+    </div>
+
+    <!-- ========== STEP 3: DỊCH VỤ ========== -->
+    <div class="step-panel" id="panel3">
+      <div class="form-card-head">
+        <div class="form-card-icon">📦</div>
+        <div>
+          <div class="form-card-title">Bước 3 / 4 — Chọn gói dịch vụ</div>
+          <div class="form-card-sub">Chọn thời hạn sử dụng phù hợp với nhu cầu của tổ chức</div>
+        </div>
+      </div>
+      <div class="form-body">
+
+        <div class="form-section">
+          <div class="section-title"><span>5.3</span>Loại dịch vụ</div>
+          <div class="notice">
+            <span class="notice-icon">✅</span>
+            <div>Bạn đang đăng ký <strong>Remote Signing</strong> — Chữ ký số từ xa qua ứng dụng di động, không cần USB Token.</div>
+          </div>
+          <div class="radio-group">
+            <label class="radio-card selected">
+              <input type="radio" name="dichvu" value="rs" checked> 📱 Remote Signing
+            </label>
+            <label class="radio-card" style="opacity:.5;cursor:not-allowed">
+              <input type="radio" name="dichvu" value="token" disabled> 🔑 Token (không áp dụng)
+            </label>
+            <label class="radio-card" style="opacity:.5;cursor:not-allowed">
+              <input type="radio" name="dichvu" value="hsm" disabled> 🖥️ HSM (không áp dụng)
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-title"><span>5.2</span>Chọn gói cước <span style="font-size:11px;font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">(xem bảng giá tại <a href="https://www.nacencomm.vn/bang-gia" target="_blank" style="color:var(--navy)">nacencomm.vn/bang-gia</a>)</span></div>
+          <div class="packages" id="pkgGroup">
+            <div class="pkg-card" onclick="selectPkg(this,'1nam')">
+              <div class="pkg-name">1 Năm</div>
+              <div class="pkg-price">Theo bảng giá</div>
+              <div class="pkg-check"></div>
+            </div>
+            <div class="pkg-card popular" onclick="selectPkg(this,'2nam')">
+              <div class="pkg-name">2 Năm</div>
+              <div class="pkg-price">Tiết kiệm hơn</div>
+              <div class="pkg-check"></div>
+            </div>
+            <div class="pkg-card" onclick="selectPkg(this,'3nam')">
+              <div class="pkg-name">3 Năm</div>
+              <div class="pkg-price">Ưu đãi nhất</div>
+              <div class="pkg-check"></div>
+            </div>
+            <div class="pkg-card" onclick="selectPkg(this,'luotky')">
+              <div class="pkg-name">Lượt ký</div>
+              <div class="pkg-price">Mua theo lượt</div>
+              <div class="pkg-check"></div>
+            </div>
+          </div>
+          <div class="field-error" id="err_pkg" style="margin-top:8px">Vui lòng chọn gói cước</div>
+        </div>
+
+        <div class="form-section">
+          <div class="field">
+            <label>Khuyến mại / Cộng bù (nếu có)</label>
+            <input type="text" id="khuyenMai" placeholder="Nhập mã khuyến mại nếu có">
+          </div>
+        </div>
+
+      </div>
+      <div class="form-footer">
+        <button class="btn btn-secondary" onclick="goStep(2)">← Quay lại</button>
+        <span class="progress-text">Bước 3 / 4</span>
+        <button class="btn btn-primary" onclick="validateStep3()">Xem lại & Xác nhận →</button>
+      </div>
+    </div>
+
+    <!-- ========== STEP 4: XÁC NHẬN ========== -->
+    <div class="step-panel" id="panel4">
+      <div class="form-card-head">
+        <div class="form-card-icon">✅</div>
+        <div>
+          <div class="form-card-title">Bước 4 / 4 — Xác nhận thông tin</div>
+          <div class="form-card-sub">Kiểm tra lại toàn bộ thông tin trước khi gửi</div>
+        </div>
+      </div>
+      <div class="form-body">
+
+        <div class="review-section">
+          <div class="review-head">Đối tượng & Hình thức</div>
+          <div class="review-body">
+            <table class="info-table">
+              <tr><td>Đối tượng</td><td id="rv_doituong">—</td></tr>
+              <tr><td>Hình thức</td><td id="rv_hinhthu">—</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="review-section cond-section show" id="rv_sec_tcdn">
+          <div class="review-head">Thông tin tổ chức / Doanh nghiệp</div>
+          <div class="review-body">
+            <table class="info-table">
+              <tr><td>Tên tổ chức</td><td id="rv_tenTCDN">—</td></tr>
+              <tr><td>Địa chỉ</td><td id="rv_diaChi_tcdn">—</td></tr>
+              <tr><td>Mã số thuế</td><td id="rv_maSoThue">—</td></tr>
+              <tr><td>Người đại diện</td><td id="rv_nddpl">—</td></tr>
+              <tr><td>Chức vụ</td><td id="rv_chucVu">—</td></tr>
+              <tr><td>CCCD/CMND (NDDPL)</td><td id="rv_cccd_tcdn">—</td></tr>
+              <tr><td>Email CTS (DN)</td><td id="rv_email_tcdn">—</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="review-section">
+          <div class="review-head">Thông tin cá nhân</div>
+          <div class="review-body">
+            <table class="info-table">
+              <tr><td>Họ và tên</td><td id="rv_hoTen">—</td></tr>
+              <tr><td>Chức danh</td><td id="rv_chucDanh">—</td></tr>
+              <tr><td>Địa chỉ</td><td id="rv_diaChi_cn">—</td></tr>
+              <tr><td>CCCD/CMND</td><td id="rv_cccd_cn">—</td></tr>
+              <tr><td>Email CTS</td><td id="rv_email_cn">—</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="review-section">
+          <div class="review-head">Liên hệ & Gói dịch vụ</div>
+          <div class="review-body">
+            <table class="info-table">
+              <tr><td>Người liên hệ</td><td id="rv_nguoiLH">—</td></tr>
+              <tr><td>Số điện thoại</td><td id="rv_sdt">—</td></tr>
+              <tr><td>Dịch vụ</td><td>Remote Signing</td></tr>
+              <tr><td>Gói cước</td><td id="rv_pkg">—</td></tr>
+              <tr><td>Khuyến mại</td><td id="rv_km">—</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="check-card selected" id="lblAgree" style="cursor:pointer">
+            <input type="checkbox" id="chkAgree" checked onchange="this.parentElement.classList.toggle('selected',this.checked)">
+            Tôi đã đọc và đồng ý với <a href="https://www.nacencomm.vn" target="_blank" style="color:var(--navy)">điều khoản dịch vụ</a> và các quy định của CA2 công bố tại <a href="http://www.nacencomm.vn" target="_blank" style="color:var(--navy)">www.nacencomm.vn</a>
+          </label>
+          <div class="field-error" id="err_agree" style="margin-top:8px">Vui lòng xác nhận điều khoản để tiếp tục</div>
+        </div>
+
+      </div>
+      <div class="form-footer">
+        <button class="btn btn-secondary" onclick="goStep(3)">← Quay lại</button>
+        <span class="progress-text">Bước 4 / 4</span>
+        <button class="btn btn-primary" onclick="submitForm()" style="background:var(--green);box-shadow:0 2px 8px rgba(26,125,74,0.3)">🚀 Gửi đăng ký</button>
+      </div>
+    </div>
+
+    <!-- ========== STEP 5: HOÀN TẤT ========== -->
+    <div class="step-panel" id="panel5">
+      <div class="form-body">
+        <div class="success-wrap">
+          <div class="success-icon">✅</div>
+          <h2>Đăng ký thành công!</h2>
+          <p>Hệ thống đã tạo hồ sơ của bạn. 2 file PDF đã được gửi tự động về email:</p>
+          <div class="email-highlight" id="success_email">—</div>
+          <p style="margin-top:12px;font-size:13px;color:var(--text3)">Vui lòng tải về, <strong>ký số điện tử</strong> vào 2 file PDF rồi nhấn <strong>"Tiếp tục nộp hồ sơ"</strong> để upload lên hệ thống.</p>
+
+          <ul class="pdf-list">
+            <li><a class="pdf-item" href="#" onclick="alert('Demo: Tải Đăng Ký Sử Dụng.pdf')">
+              <span class="pdf-icon">📄</span> Đăng Ký Sử Dụng.pdf
+            </a></li>
+            <li><a class="pdf-item" href="#" onclick="alert('Demo: Tải Hợp Đồng.pdf')">
+              <span class="pdf-icon">📄</span> Hợp Đồng.pdf
+            </a></li>
+          </ul>
+
+          <div class="notice" style="max-width:520px;margin:0 auto 24px;text-align:left">
+            <span class="notice-icon">📌</span>
+            <div>Sau khi ký số xong, nhấn nút bên dưới để tiếp tục <strong>upload hồ sơ</strong> (4 loại giấy tờ). Hồ sơ sẽ được CA2 thẩm định trong vòng 1–2 ngày làm việc.</div>
+          </div>
+
+          <button class="btn btn-primary" style="font-size:15px;padding:13px 32px" onclick="alert('Demo: Chuyển sang màn hình Upload Hồ Sơ (Bước 6)')">
+            📤 Tiếp tục nộp hồ sơ online →
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /form-card -->
+</div><!-- /main -->
+
+<div class="site-footer">
+  © 2024 Tổng Công ty Truyền thông – NACENCOMM &nbsp;|&nbsp; CA2 – Chữ ký số công cộng &nbsp;|&nbsp;
+  <a href="#">Chính sách bảo mật</a> &nbsp;|&nbsp;
+  <a href="#">Hotline: 1900 xxxx</a>
+</div>
+
+<script>
+  let currentStep = 1;
+  let selectedPkg = null;
+  let selectedDoiTuong = 'tcdn';
+
+  const doiTuongLabels = {
+    tcdn: 'Tổ chức / Doanh nghiệp',
+    ca_tcdn: 'Cá nhân thuộc tổ chức',
+    cn: 'Cá nhân',
+    hkd: 'Hộ kinh doanh'
+  };
+  const pkgLabels = { '1nam':'1 Năm', '2nam':'2 Năm', '3nam':'3 Năm', 'luotky':'Lượt ký' };
+
+  function onDoiTuong(el) {
+    selectedDoiTuong = el.value;
+    document.querySelectorAll('#dtGroup .radio-card').forEach(c => c.classList.remove('selected'));
+    el.parentElement.classList.add('selected');
+    const showTCDN = ['tcdn','ca_tcdn','hkd'].includes(selectedDoiTuong);
+    document.getElementById('sec_tcdn').classList.toggle('show', showTCDN);
+    document.getElementById('rv_sec_tcdn').classList.toggle('show', showTCDN);
+  }
+
+  function setRC(groupId, el) {
+    document.querySelectorAll('#' + groupId + ' .radio-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function selectPkg(card, val) {
+    document.querySelectorAll('#pkgGroup .pkg-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedPkg = val;
+    document.getElementById('err_pkg').classList.remove('show');
+  }
+
+  function clearErr(el) {
+    el.classList.remove('error');
+    const errEl = document.getElementById('err_' + el.id);
+    if (errEl) errEl.classList.remove('show');
+  }
+
+  function showErr(id, msg) {
+    const el = document.getElementById(id);
+    if (el) { el.classList.add('error'); }
+    const errEl = document.getElementById('err_' + id);
+    if (errEl) { errEl.textContent = msg || errEl.textContent; errEl.classList.add('show'); }
+    return false;
+  }
+
+  function goStep(n) {
+    document.getElementById('panel' + currentStep).classList.remove('active');
+    document.getElementById('panel' + n).classList.add('active');
+    // Update step indicator
+    for (let i = 1; i <= 5; i++) {
+      const dot = document.getElementById('sdot' + i);
+      const lbl = document.getElementById('slbl' + i);
+      if (!dot) continue;
+      dot.className = 'step-dot';
+      lbl.className = 'step-label';
+      if (i < n) { dot.classList.add('done'); dot.textContent = ''; lbl.classList.add('done'); }
+      else if (i === n) { dot.classList.add('active'); dot.textContent = i; lbl.classList.add('active'); }
+      else { dot.textContent = i; }
+      const line = document.getElementById('sline' + i);
+      if (line) line.classList.toggle('done', i < n);
+    }
+    currentStep = n;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function validateStep2() {
+    let ok = true;
+    const showTCDN = ['tcdn','ca_tcdn','hkd'].includes(selectedDoiTuong);
+    if (showTCDN) {
+      if (!v('tenTCDN')) ok = false;
+      if (!v('diaChi_tcdn')) ok = false;
+      if (!v('maSoThue')) ok = false;
+      if (!v('nddpl')) ok = false;
+      if (!v('cccd_tcdn')) ok = false;
+      if (!v('ngayCap_tcdn')) ok = false;
+      if (!vEmail('email_tcdn')) ok = false;
+    }
+    if (!v('hoTen')) ok = false;
+    if (!v('diaChi_cn')) ok = false;
+    if (!v('cccd_cn')) ok = false;
+    if (!v('ngayCap_cn')) ok = false;
+    if (!vEmail('email_cn')) ok = false;
+    if (!v('nguoiLH')) ok = false;
+    if (!vPhone('sdt')) ok = false;
+    if (ok) goStep(3);
+    else { const errs = document.querySelectorAll('.field-error.show'); if (errs.length) errs[0].scrollIntoView({behavior:'smooth',block:'center'}); }
+  }
+
+  function validateStep3() {
+    if (!selectedPkg) {
+      document.getElementById('err_pkg').classList.add('show');
+      document.getElementById('err_pkg').scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+    // Populate review
+    const htRadio = document.querySelector('input[name="hinhthu"]:checked');
+    document.getElementById('rv_doituong').textContent = doiTuongLabels[selectedDoiTuong] || '—';
+    document.getElementById('rv_hinhthu').textContent = htRadio?.value === 'giaHan' ? 'Gia hạn' : 'Cấp mới';
+    document.getElementById('rv_tenTCDN').textContent = gv('tenTCDN');
+    document.getElementById('rv_diaChi_tcdn').textContent = gv('diaChi_tcdn');
+    document.getElementById('rv_maSoThue').textContent = gv('maSoThue');
+    document.getElementById('rv_nddpl').textContent = gv('nddpl');
+    document.getElementById('rv_chucVu').textContent = gv('chucVu_tcdn') || '—';
+    document.getElementById('rv_cccd_tcdn').textContent = gv('cccd_tcdn');
+    document.getElementById('rv_email_tcdn').textContent = gv('email_tcdn');
+    document.getElementById('rv_hoTen').textContent = gv('hoTen');
+    document.getElementById('rv_chucDanh').textContent = gv('chucDanh') || '—';
+    document.getElementById('rv_diaChi_cn').textContent = gv('diaChi_cn');
+    document.getElementById('rv_cccd_cn').textContent = gv('cccd_cn');
+    document.getElementById('rv_email_cn').textContent = gv('email_cn');
+    document.getElementById('rv_nguoiLH').textContent = gv('nguoiLH');
+    document.getElementById('rv_sdt').textContent = gv('sdt');
+    document.getElementById('rv_pkg').textContent = pkgLabels[selectedPkg] || '—';
+    document.getElementById('rv_km').textContent = gv('khuyenMai') || '—';
+    goStep(4);
+  }
+
+  function submitForm() {
+    if (!document.getElementById('chkAgree').checked) {
+      document.getElementById('err_agree').classList.add('show');
+      return;
+    }
+    document.getElementById('err_agree').classList.remove('show');
+    // Set success email
+    const em = gv('email_tcdn') || gv('email_cn') || 'email của bạn';
+    document.getElementById('success_email').textContent = em;
+    goStep(5);
+  }
+
+  function v(id) {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) { showErr(id); return false; }
+    return true;
+  }
+  function vEmail(id) {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) { showErr(id, 'Vui lòng nhập email'); return false; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value)) { showErr(id, 'Email không đúng định dạng'); return false; }
+    return true;
+  }
+  function vPhone(id) {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) { showErr(id, 'Vui lòng nhập số điện thoại'); return false; }
+    if (!/^0\d{8,10}$/.test(el.value.replace(/\s/g,''))) { showErr(id, 'Số điện thoại không hợp lệ (bắt đầu bằng 0, 9–11 số)'); return false; }
+    return true;
+  }
+  function gv(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+</script>
+</body>
+</html>
