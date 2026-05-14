@@ -17,7 +17,9 @@
     flowType: product.flowType,
     step: 1,
     packageChoice: "",
-    paymentMethod: "bank",
+    paymentMethod: "",
+    paymentConfirmed: false,
+    paymentModalState: "idle",
     agreedTerms: false,
     submitted: false,
     uploaded: false,
@@ -111,7 +113,18 @@
     next.mobileMenuOpen = Boolean(saved.mobileMenuOpen);
     next.activeFaq = saved.activeFaq || "";
     next.activeProductFilter = saved.activeProductFilter || "all";
-    next.drafts = saved.drafts || {};
+    next.drafts = Object.fromEntries(
+      Object.entries(saved.drafts || {}).map(([slug, draft]) => {
+        const product = products.find((item) => item.slug === slug);
+        const normalized = { ...(product ? defaultDraft(product) : {}), ...(draft || {}) };
+        if (normalized.paymentMethod === "bank" && !normalized.paymentConfirmed) {
+          normalized.paymentMethod = "";
+        }
+        normalized.paymentConfirmed = Boolean(normalized.paymentConfirmed);
+        normalized.paymentModalState = normalized.paymentModalState || "idle";
+        return [slug, normalized];
+      }),
+    );
     return next;
   }
 
@@ -221,10 +234,10 @@
             </div>
           </div>
           <div class="hero-metrics">
-            <article class="metric-card"><strong>14</strong><span>Sản phẩm có nút MUA NGAY và flow đăng ký riêng.</span></article>
-            <article class="metric-card"><strong>7</strong><span>Loại flow khác nhau theo tính chất sản phẩm.</span></article>
-            <article class="metric-card"><strong>8 bước</strong><span>Remote Signing giữ nguyên luồng đặc biệt để demo sâu.</span></article>
-            <article class="metric-card"><strong>Mock end-to-end</strong><span>Form, thanh toán, upload, status, activate đều chạy ngay trên client.</span></article>
+            <article class="metric-card hero-product-card"><strong class="card-title">14</strong><span class="card-desc">Sản phẩm có nút MUA NGAY và flow đăng ký riêng.</span></article>
+            <article class="metric-card hero-product-card"><strong class="card-title">7</strong><span class="card-desc">Loại flow khác nhau theo tính chất sản phẩm.</span></article>
+            <article class="metric-card hero-product-card"><strong class="card-title">8 bước</strong><span class="card-desc">Remote Signing giữ nguyên luồng đặc biệt để demo sâu.</span></article>
+            <article class="metric-card hero-product-card"><strong class="card-title">Mock end-to-end</strong><span class="card-desc">Form, thanh toán, upload, status, activate đều chạy ngay trên client.</span></article>
           </div>
         </div>
       </section>
@@ -365,13 +378,14 @@
         <div class="section-tag">Bảng giá / Gói cước</div>
         <div class="package-grid product-package-grid">
           ${product.packages.map((pkg, index) => `
-            <article class="card-option ${index === 1 ? "selected" : ""}">
+            <article class="card-option pkg-card ${index === 1 ? "selected" : ""}">
+              ${index === 1 ? '<span class="badge-popular">⭐ Phổ biến</span>' : ""}
               <header>
                 <div>
                   <h4 class="option-title">${escapeHtml(pkg)}</h4>
                   <p class="option-subtitle">Liên hệ báo giá hoặc hiển thị mock giá trong giai đoạn demo.</p>
                 </div>
-                ${index === 1 ? '<span class="badge">⭐ Phổ biến</span>' : ""}
+                <span class="pkg-check">${index === 1 ? "✓" : ""}</span>
               </header>
               <a class="danger-button full-width-button" href="#/register/${product.slug}?package=${encodeURIComponent(pkg)}">🛒 Mua gói này</a>
             </article>
@@ -447,19 +461,18 @@
   function renderStandardRegister(product, draft) {
     const labels = flowLabels(product.flowType);
     const step = draft.step;
+    const nextDisabled = step === 3 && !draft.paymentMethod;
     return `
       ${renderRegisterHeader(product, labels, step)}
       <section class="screen-card">
-        <div class="section-tag">/register/${escapeHtml(product.slug)}</div>
         <h2>${escapeHtml(product.name)} — Form đăng ký</h2>
-        <p class="screen-description">Form chung theo slug sản phẩm. Trường hiển thị được điều chỉnh theo flow type và nhóm nghiệp vụ.</p>
         ${step === 1 ? renderStandardStepPackage(product, draft) : ""}
         ${step === 2 ? renderStandardStepInfo(product, draft) : ""}
         ${step === 3 ? renderStandardStepPayment(product, draft) : ""}
         ${step === 4 ? renderStandardStepReview(product, draft) : ""}
         <div class="footer-actions">
           ${step > 1 ? '<button class="neutral-button" type="button" data-action="prev-standard-step">← Quay lại</button>' : '<a class="neutral-button" href="#/products">← Danh mục sản phẩm</a>'}
-          <button class="${step === labels.length ? "success-button" : "primary-button"}" type="button" data-action="next-standard-step">${step === labels.length ? "Gửi hồ sơ →" : "Tiếp theo →"}</button>
+          <button class="${step === labels.length ? "success-button" : "primary-button"} ${nextDisabled ? "button-disabled" : ""}" type="button" data-action="next-standard-step" ${nextDisabled ? "disabled" : ""}>${step === labels.length ? "Gửi hồ sơ →" : "Tiếp theo →"}</button>
         </div>
       </section>
     `;
@@ -472,8 +485,9 @@
         <div class="stepper standard-stepper">
           ${labels.map((label, index) => {
             const number = index + 1;
-            const klass = number === step ? "step-pill active" : number < step ? "step-pill done" : "step-pill";
-            return `<article class="${klass}"><small>Bước ${number}</small><strong>${escapeHtml(label)}</strong></article>`;
+            const stateClass = number === step ? "active" : number < step ? "done" : "pending";
+            const marker = number < step ? "✓" : number;
+            return `<article class="step-pill step-item ${stateClass}"><small>${marker}</small><strong>${escapeHtml(label)}</strong></article>`;
           }).join("")}
         </div>
       </section>
@@ -486,13 +500,14 @@
         <h3>Chọn gói đăng ký</h3>
         <div class="package-grid product-package-grid">
           ${product.packages.map((pkg, index) => `
-            <article class="card-option ${draft.packageChoice === pkg ? "selected" : ""}" data-action="select-package" data-value="${escapeHtml(pkg)}">
+            <article class="card-option pkg-card ${draft.packageChoice === pkg ? "selected" : ""}" data-action="select-package" data-value="${escapeHtml(pkg)}">
+              ${index === 1 ? '<span class="badge-popular">⭐ Phổ biến</span>' : ""}
               <header>
                 <div>
                   <h4 class="option-title">${escapeHtml(pkg)}</h4>
                   <p class="option-subtitle">Liên hệ báo giá hoặc mock giá theo demo.</p>
                 </div>
-                ${index === 1 ? '<span class="badge">⭐ Phổ biến</span>' : ""}
+                <span class="pkg-check">${draft.packageChoice === pkg ? "✓" : ""}</span>
               </header>
             </article>
           `).join("")}
@@ -530,13 +545,16 @@
         </div>
         <div class="service-grid payment-grid">
           ${data.paymentMethods.map((method) => `
-            <article class="card-option ${draft.paymentMethod === method.value ? "selected" : ""}" data-action="select-payment" data-value="${method.value}">
+            <article class="card-option payment-card ${draft.paymentMethod === method.value ? "selected" : ""}" data-action="select-payment" data-value="${method.value}">
               <h4 class="option-title">${escapeHtml(method.title)}</h4>
               <p class="option-subtitle">${escapeHtml(method.note)}</p>
+              <span class="selection-check">${draft.paymentMethod === method.value ? "✓" : ""}</span>
             </article>
           `).join("")}
         </div>
+        ${renderError(draft, "paymentMethod")}
       </div>
+      ${renderPaymentModal(draft)}
     `;
   }
 
@@ -586,7 +604,7 @@
         </div>
         <div class="footer-actions">
           <a class="neutral-button" href="#/register/${product.slug}/status">← Xem trạng thái trước</a>
-          <button class="success-button" type="button" data-action="submit-generic-uploads">✅ Hoàn tất & gửi hồ sơ</button>
+          <button class="success-button btn-upload-submit ${uploadedDocCount(draft) < product.uploadDocs.length ? "button-disabled" : ""}" type="button" data-action="submit-generic-uploads" ${uploadedDocCount(draft) < product.uploadDocs.length ? "disabled" : ""}>✅ Hoàn tất & gửi hồ sơ</button>
         </div>
       </section>
     `;
@@ -597,7 +615,7 @@
     const file = draft.uploads[key];
     const error = draft.errors[key];
     return `
-      <article class="upload-card ${file ? "filled" : ""} ${error ? "error" : ""}">
+      <article class="upload-card upload-zone ${file ? "filled" : ""} ${error ? "error" : ""}">
         <header>
           <div>
             <h4 class="option-title">${escapeHtml(doc)}</h4>
@@ -714,15 +732,14 @@
         <div class="stepper">
           ${labels.map((label, index) => {
             const number = index + 1;
-            const klass = number === step ? "step-pill active" : number < step ? "step-pill done" : "step-pill";
-            return `<article class="${klass}"><small>Bước ${number}</small><strong>${escapeHtml(label)}</strong></article>`;
+            const stateClass = number === step ? "active" : number < step ? "done" : "pending";
+            const marker = number < step ? "✓" : number;
+            return `<article class="step-pill step-item ${stateClass}"><small>${marker}</small><strong>${escapeHtml(label)}</strong></article>`;
           }).join("")}
         </div>
       </section>
       <section class="screen-card">
-        <div class="section-tag">/register/remote-signing</div>
         <h2>Remote Signing — flow 8 bước đặc biệt</h2>
-        <p class="screen-description">Luồng này giữ riêng để trình bày chiều sâu nghiệp vụ CA2, khác với form chung của các sản phẩm còn lại.</p>
         ${renderRemoteScreen(draft, product)}
       </section>
     `;
@@ -822,10 +839,11 @@
         <h3>Mục 5.2 — Gói cước</h3>
         <div class="package-grid product-package-grid">
           ${["1 Năm", "2 Năm", "3 Năm", "Lượt ký"].map((pkg, index) => `
-            <article class="card-option ${draft.packageChoice === pkg ? "selected" : ""}" data-action="select-package" data-value="${escapeHtml(pkg)}">
+            <article class="card-option pkg-card ${draft.packageChoice === pkg ? "selected" : ""}" data-action="select-package" data-value="${escapeHtml(pkg)}">
+              ${index === 1 ? '<span class="badge-popular">⭐ Phổ biến</span>' : ""}
               <header>
                 <div><h4 class="option-title">${escapeHtml(pkg)}</h4><p class="option-subtitle">${index === 3 ? "Mua theo số lượt" : "Hiệu lực theo năm"}</p></div>
-                ${index === 1 ? '<span class="badge">⭐ Phổ biến</span>' : ""}
+                <span class="pkg-check">${draft.packageChoice === pkg ? "✓" : ""}</span>
               </header>
             </article>
           `).join("")}
@@ -908,7 +926,7 @@
       </div>
       <div class="footer-actions">
         <button class="neutral-button" type="button" data-action="prev-remote-step">← Quay lại</button>
-        <button class="success-button" type="button" data-action="next-remote-step">✅ Hoàn tất & Gửi hồ sơ</button>
+        <button class="success-button btn-upload-submit ${uploadedDocCount(draft) < data.remoteSigning.uploadRequirements.length ? "button-disabled" : ""}" type="button" data-action="next-remote-step" ${uploadedDocCount(draft) < data.remoteSigning.uploadRequirements.length ? "disabled" : ""}>✅ Hoàn tất & Gửi hồ sơ</button>
         <a class="chip-button" href="#/register/${product.slug}/status">Mở route status riêng</a>
       </div>
     `;
@@ -1012,7 +1030,7 @@
     const file = draft.uploads[requirement.key];
     const error = draft.errors[requirement.key];
     return `
-      <article class="upload-card ${file ? "filled" : ""} ${error ? "error" : ""}">
+      <article class="upload-card upload-zone ${file ? "filled" : ""} ${error ? "error" : ""}">
         <header>
           <div>
             <h4 class="option-title">${escapeHtml(requirement.title)}</h4>
@@ -1101,6 +1119,27 @@
     return draft.errors[key] ? `<div class="error-text">${draft.errors[key]}</div>` : "";
   }
 
+  function renderPaymentModal(draft) {
+    const isOpen = draft.paymentModalState === "processing" || draft.paymentModalState === "success";
+    return `
+      <div id="payment-modal" class="payment-modal ${isOpen ? "open" : ""}">
+        <div class="payment-modal-card">
+          <div id="pm-processing" class="${draft.paymentModalState === "processing" ? "" : "hidden"}">
+            <div class="payment-modal-icon">⏳</div>
+            <div class="payment-modal-title processing">Đang xử lý thanh toán...</div>
+            <div class="payment-modal-text">Vui lòng chờ trong giây lát</div>
+          </div>
+          <div id="pm-success" class="${draft.paymentModalState === "success" ? "" : "hidden"}">
+            <div class="payment-modal-icon">✅</div>
+            <div class="payment-modal-title success">Thanh toán thành công!</div>
+            <div class="payment-modal-text">Email xác nhận đã gửi về hòm thư của bạn.</div>
+            <button id="pm-continue-btn" class="primary-button" type="button" data-action="continue-payment-success">Tiếp tục hoàn tất hồ sơ →</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function handleClick(event) {
     const target = event.target.closest("[data-action]");
     if (!target) return;
@@ -1140,6 +1179,16 @@
       case "select-payment":
         if (draft) {
           draft.paymentMethod = value;
+          draft.paymentConfirmed = false;
+          saveDraft(product, draft);
+          render();
+        }
+        return;
+      case "continue-payment-success":
+        if (draft) {
+          draft.paymentModalState = "idle";
+          draft.paymentConfirmed = true;
+          draft.step = 4;
           saveDraft(product, draft);
           render();
         }
@@ -1300,6 +1349,25 @@
     const maxStep = flowLabels(product.flowType).length;
     if (draft.step === 1 && !draft.packageChoice) draft.errors.packageChoice = "Vui lòng chọn gói đăng ký.";
     if (draft.step === 2) validateStandardInfo(product, draft);
+    if (draft.step === 3) {
+      if (!draft.paymentMethod) {
+        draft.errors.paymentMethod = "Vui lòng chọn phương thức thanh toán.";
+      } else {
+        draft.paymentModalState = "processing";
+        saveDraft(product, draft);
+        render();
+        setTimeout(() => {
+          const currentProduct = getProduct(product.slug);
+          if (!currentProduct) return;
+          ensureDraft(currentProduct);
+          const currentDraft = draftFor(currentProduct);
+          currentDraft.paymentModalState = "success";
+          saveDraft(currentProduct, currentDraft);
+          render();
+        }, 1500);
+        return;
+      }
+    }
     if (draft.step === 4 && !draft.agreedTerms) draft.errors.agreedTerms = "Bạn cần xác nhận điều khoản trước khi gửi.";
 
     if (Object.keys(draft.errors).length) {
@@ -1590,5 +1658,9 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
+  }
+
+  function uploadedDocCount(draft) {
+    return Object.keys(draft.uploads || {}).length;
   }
 })();
